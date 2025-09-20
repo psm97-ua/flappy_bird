@@ -41,6 +41,7 @@ private:
     char entered_key;
     Bird pajaro;
 
+     // --- Sprites ---
     Texture2D birdSprite;
     Texture2D pipeSprite;
 
@@ -56,4 +57,14 @@ private:
     float spawnEvery = 1.5f;
 
     int puntos = 0;
+
+     // --- Sonidos ---
+    Sound wingSound;
+    Sound pointSound;
+    Sound hitSound;
+
+    // --- Dificultad progresiva ---
+    float dificultadTimer; 
+    float gapFactor;      
+    float pipeSpeed;
 };

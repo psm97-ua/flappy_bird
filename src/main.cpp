@@ -11,6 +11,9 @@ extern "C" {
 int main()
 { 
     InitWindow(288, 512, "Flappy Bird DCA");
+    InitAudioDevice();
+    SetMasterVolume(1.0f); 
+
     float delta_time = 0.0f;
 
     StateMachine state_machine = StateMachine();
@@ -26,6 +29,9 @@ int main()
         state_machine.getCurrentState()->update(delta_time);
         state_machine.getCurrentState()->render();       
     }
+    
+    CloseAudioDevice();
+    CloseWindow();
 
     return 0;
 }

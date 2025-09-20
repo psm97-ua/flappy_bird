@@ -22,9 +22,17 @@ void MainGameState::init()
     tuberias.clear();
     puntos = 0;
 
+    dificultadTimer = 0.0f;
+    gapFactor = 4.5f;
+    pipeSpeed = PIPE_SPEED;
+
     // --- Cargar sprites ---
     birdSprite = LoadTexture("assets/bluebird-midflap.png");
     pipeSprite = LoadTexture("assets/pipe-green.png");
+
+    wingSound = LoadSound("assets/audio/sfx_wing.ogg");
+    pointSound = LoadSound("assets/audio/sfx_point.ogg");
+    hitSound = LoadSound("assets/audio/sfx_hit.ogg");
 
     // Tamaño del pájaro según sprite
     pajaro.width = (float)birdSprite.width;
@@ -33,6 +41,7 @@ void MainGameState::init()
     // Tamaño de las tuberías según sprite
     PIPE_W = pipeSprite.width;
     PIPE_H = pipeSprite.height;
+    SetMasterVolume(1.0f);
 }
 
 void MainGameState::handleInput()
@@ -40,6 +49,7 @@ void MainGameState::handleInput()
     if (IsKeyPressed(KEY_SPACE))
     {
         pajaro.vy += -300.0f; // impulsamos hacia arriba al pajaro
+        PlaySound(wingSound);
     }
 }
 
@@ -54,6 +64,18 @@ void MainGameState::update(float deltaTime)
     pajaroBB.y = pajaro.y;
     pajaroBB.width = pajaro.width;
     pajaroBB.height = pajaro.height;
+
+    // --- Actualizar dificultad progresiva ---
+    dificultadTimer += deltaTime;
+    if (dificultadTimer > 5.0f) // cada 5 segundos
+    {
+        if (gapFactor > 2.5f)
+            gapFactor -= 0.5f;  // huecos más pequeños
+        pipeSpeed += 30.0f;     // tuberías más rápidas
+        dificultadTimer = 0.0f; // reiniciar contador
+        std::cout << "pipeSpeed: " << pipeSpeed << " gapFactor: " << gapFactor << std::endl;
+
+    }
 
     spawnTimer += deltaTime;
     if (spawnTimer >= spawnEvery)
@@ -101,6 +123,7 @@ void MainGameState::update(float deltaTime)
         {
             puntos++;
             p.scored = true;
+            PlaySound(pointSound);
         }
     }
 
@@ -108,6 +131,7 @@ void MainGameState::update(float deltaTime)
     {
         if (CheckCollisionRecs(pajaroBB, p.top) || CheckCollisionRecs(pajaroBB, p.bot))
         {
+            PlaySound(hitSound);
             this->state_machine->add_state(std::make_unique<GameOverState>(puntos), true);
             return; // salimos del update para no seguir ejecutando
         }
@@ -116,6 +140,7 @@ void MainGameState::update(float deltaTime)
     // Colisiones con bordes de pantalla
     if (pajaro.y < 0 || pajaro.y + pajaro.height > GetScreenHeight())
     {
+        PlaySound(hitSound);
         this->state_machine->add_state(std::make_unique<GameOverState>(puntos), true);
         return;
     }
