@@ -9,9 +9,11 @@ extern "C"
 
 struct Bird
 {
-    float x;  // posición horizontal
-    float y;  // posición vertical
-    float vy; // velocidad vertical
+    float x;      // posición horizontal
+    float y;      // posición vertical
+    float vy;     // velocidad vertical
+    float width;  // ancho del sprite
+    float height; // alto del sprite
 };
 
 struct PipePair
@@ -38,13 +40,17 @@ public:
 private:
     char entered_key;
     Bird pajaro;
+
+    Texture2D birdSprite;
+    Texture2D pipeSprite;
+
     std::deque<PipePair> tuberias;
 
-    const float PIPE_GAP_Y = 120.0f; 
-    const float PIPE_SPEED = 80.0f; 
+    const float PIPE_GAP_Y = 120.0f;
+    const float PIPE_SPEED = 80.0f;
 
-    const int PIPE_W = 32;
-    const int PIPE_H = 320;
+    int PIPE_W;
+    int PIPE_H;
 
     float spawnTimer = 0.0f;
     float spawnEvery = 1.5f;

@@ -21,6 +21,18 @@ void MainGameState::init()
     spawnTimer = 0.0f;
     tuberias.clear();
     puntos = 0;
+
+    // --- Cargar sprites ---
+    birdSprite = LoadTexture("assets/bluebird-midflap.png");
+    pipeSprite = LoadTexture("assets/pipe-green.png");
+
+    // Tamaño del pájaro según sprite
+    pajaro.width = (float)birdSprite.width;
+    pajaro.height = (float)birdSprite.height;
+
+    // Tamaño de las tuberías según sprite
+    PIPE_W = pipeSprite.width;
+    PIPE_H = pipeSprite.height;
 }
 
 void MainGameState::handleInput()
@@ -38,10 +50,10 @@ void MainGameState::update(float deltaTime)
     pajaro.y += pajaro.vy * deltaTime;
 
     Rectangle pajaroBB;
-    pajaroBB.x = pajaro.x - 17; // 17 = radio
-    pajaroBB.y = pajaro.y - 17;
-    pajaroBB.width = 34; // diámetro
-    pajaroBB.height = 34;
+    pajaroBB.x = pajaro.x;
+    pajaroBB.y = pajaro.y;
+    pajaroBB.width = pajaro.width;
+    pajaroBB.height = pajaro.height;
 
     spawnTimer += deltaTime;
     if (spawnTimer >= spawnEvery)
@@ -102,7 +114,7 @@ void MainGameState::update(float deltaTime)
     }
 
     // Colisiones con bordes de pantalla
-    if (pajaro.y - 17 < 0 || pajaro.y + 17 > GetScreenHeight())
+    if (pajaro.y < 0 || pajaro.y + pajaro.height > GetScreenHeight())
     {
         this->state_machine->add_state(std::make_unique<GameOverState>(puntos), true);
         return;
@@ -111,14 +123,25 @@ void MainGameState::update(float deltaTime)
 
 void MainGameState::render()
 {
-    BeginDrawing();                                    // 1) Comienza el dibujado
-    ClearBackground(RAYWHITE);                         // 2) Limpia el fotograma anterior
-    DrawCircle((int)pajaro.x, (int)pajaro.y, 17, RED); //    color
+    BeginDrawing();            // 1) Comienza el dibujado
+    ClearBackground(RAYWHITE); // 2) Limpia el fotograma anterior
+    DrawTexture(birdSprite, (int)pajaro.x, (int)pajaro.y, WHITE);
 
     for (const auto &p : tuberias)
     {
-        DrawRectangle((int)p.top.x, (int)p.top.y, (int)p.top.width, (int)p.top.height, DARKGREEN);
-        DrawRectangle((int)p.bot.x, (int)p.bot.y, (int)p.bot.width, (int)p.bot.height, DARKGREEN);
+        // Tubería superior (rotada 180º)
+        DrawTextureEx(pipeSprite,
+                      {p.top.x, p.top.y + PIPE_H},
+                      180.0f, // rotación
+                      1.0f,   // escala
+                      WHITE);
+
+        // Tubería inferior (normal)
+        DrawTextureEx(pipeSprite,
+                      {p.bot.x, p.bot.y},
+                      0.0f, // rotación
+                      1.0f, // escala
+                      WHITE);
     }
 
     std::string puntosStr = std::to_string(puntos);
