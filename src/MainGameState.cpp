@@ -20,6 +20,7 @@ void MainGameState::init()
 
     spawnTimer = 0.0f;
     tuberias.clear();
+    puntos = 0;
 }
 
 void MainGameState::handleInput()
@@ -82,11 +83,20 @@ void MainGameState::update(float deltaTime)
         }
     }
 
+    for (auto &p : tuberias)
+    {
+        if (!p.scored && p.top.x + p.top.width < pajaro.x)
+        {
+            puntos++;
+            p.scored = true;
+        }
+    }
+
     for (const auto &p : tuberias)
     {
         if (CheckCollisionRecs(pajaroBB, p.top) || CheckCollisionRecs(pajaroBB, p.bot))
         {
-            this->state_machine->add_state(std::make_unique<GameOverState>(), true);
+            this->state_machine->add_state(std::make_unique<GameOverState>(puntos), true);
             return; // salimos del update para no seguir ejecutando
         }
     }
@@ -94,7 +104,7 @@ void MainGameState::update(float deltaTime)
     // Colisiones con bordes de pantalla
     if (pajaro.y - 17 < 0 || pajaro.y + 17 > GetScreenHeight())
     {
-        this->state_machine->add_state(std::make_unique<GameOverState>(), true);
+        this->state_machine->add_state(std::make_unique<GameOverState>(puntos), true);
         return;
     }
 }
@@ -110,5 +120,9 @@ void MainGameState::render()
         DrawRectangle((int)p.top.x, (int)p.top.y, (int)p.top.width, (int)p.top.height, DARKGREEN);
         DrawRectangle((int)p.bot.x, (int)p.bot.y, (int)p.bot.width, (int)p.bot.height, DARKGREEN);
     }
+
+    std::string puntosStr = std::to_string(puntos);
+    DrawText(puntosStr.c_str(), 10, 10, 30, BLACK);
+
     EndDrawing();
 }

@@ -48,4 +48,6 @@ private:
 
     float spawnTimer = 0.0f;
     float spawnEvery = 1.5f;
+
+    int puntos = 0;
 };
