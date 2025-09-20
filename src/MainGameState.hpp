@@ -1,32 +1,51 @@
 #pragma once
 #include "GameState.hpp"
+#include <deque>
 
+extern "C"
+{
+#include "raylib.h" // define Rectangle
+}
 
-struct Bird {
-    float x;   // posición horizontal
-    float y;   // posición vertical
-    float vy;  // velocidad vertical
+struct Bird
+{
+    float x;  // posición horizontal
+    float y;  // posición vertical
+    float vy; // velocidad vertical
 };
 
-
-
+struct PipePair
+{
+    Rectangle top;
+    Rectangle bot;
+    bool scored = false;
+};
 
 class MainGameState : public GameState
 {
-    public:
-        MainGameState();
-        ~MainGameState() = default;
+public:
+    MainGameState();
+    ~MainGameState() = default;
 
-        void init() override;
-        void handleInput() override;
-        void update(float deltaTime) override;
-        void render() override;
+    void init() override;
+    void handleInput() override;
+    void update(float deltaTime) override;
+    void render() override;
 
-        void pause(){};
-        void resume(){};
+    void pause() {};
+    void resume() {};
 
-    
-    private:
-        char entered_key;
-        Bird pajaro;
+private:
+    char entered_key;
+    Bird pajaro;
+    std::deque<PipePair> tuberias;
+
+    const float PIPE_GAP_Y = 120.0f; 
+    const float PIPE_SPEED = 80.0f; 
+
+    const int PIPE_W = 32;
+    const int PIPE_H = 320;
+
+    float spawnTimer = 0.0f;
+    float spawnEvery = 1.5f;
 };
