@@ -1,6 +1,16 @@
 #pragma once
 #include "GameState.hpp"
 
+
+struct Bird {
+    float x;   // posición horizontal
+    float y;   // posición vertical
+    float vy;  // velocidad vertical
+};
+
+
+
+
 class MainGameState : public GameState
 {
     public:
@@ -18,4 +28,5 @@ class MainGameState : public GameState
     
     private:
         char entered_key;
+        Bird pajaro;
 };
