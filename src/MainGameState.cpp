@@ -1,4 +1,6 @@
 #include "MainGameState.hpp"
+#include "GameOverState.hpp"
+#include "StateMachine.hpp"
 #include <iostream>
 
 extern "C"
@@ -34,15 +36,20 @@ void MainGameState::update(float deltaTime)
     pajaro.vy += gravedad * deltaTime;
     pajaro.y += pajaro.vy * deltaTime;
 
+    Rectangle pajaroBB;
+    pajaroBB.x = pajaro.x - 17; // 17 = radio
+    pajaroBB.y = pajaro.y - 17;
+    pajaroBB.width = 34; // diámetro
+    pajaroBB.height = 34;
+
     spawnTimer += deltaTime;
     if (spawnTimer >= spawnEvery)
     {
         spawnTimer = 0.0f;
 
         int minOff = PIPE_H / 2;
-        int maxOff = GetScreenHeight() / 2; 
+        int maxOff = GetScreenHeight() / 2;
         int pipe_y_offset_top = GetRandomValue(minOff, maxOff);
-
 
         float startX = (float)GetScreenWidth();
         float topY = -(float)pipe_y_offset_top;
@@ -74,6 +81,22 @@ void MainGameState::update(float deltaTime)
             tuberias.pop_front();
         }
     }
+
+    for (const auto &p : tuberias)
+    {
+        if (CheckCollisionRecs(pajaroBB, p.top) || CheckCollisionRecs(pajaroBB, p.bot))
+        {
+            this->state_machine->add_state(std::make_unique<GameOverState>(), true);
+            return; // salimos del update para no seguir ejecutando
+        }
+    }
+
+    // Colisiones con bordes de pantalla
+    if (pajaro.y - 17 < 0 || pajaro.y + 17 > GetScreenHeight())
+    {
+        this->state_machine->add_state(std::make_unique<GameOverState>(), true);
+        return;
+    }
 }
 
 void MainGameState::render()
@@ -82,7 +105,8 @@ void MainGameState::render()
     ClearBackground(RAYWHITE);                         // 2) Limpia el fotograma anterior
     DrawCircle((int)pajaro.x, (int)pajaro.y, 17, RED); //    color
 
-     for (const auto &p : tuberias) {
+    for (const auto &p : tuberias)
+    {
         DrawRectangle((int)p.top.x, (int)p.top.y, (int)p.top.width, (int)p.top.height, DARKGREEN);
         DrawRectangle((int)p.bot.x, (int)p.bot.y, (int)p.bot.width, (int)p.bot.height, DARKGREEN);
     }
