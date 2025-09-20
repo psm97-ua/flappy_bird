@@ -1,10 +1,16 @@
-#include <StateMachine.hpp>
-#include <MainGameState.hpp>
+#include "StateMachine.hpp"
+#include "MainGameState.hpp"
 #include <memory>
 #include <chrono>
 
+extern "C" {
+    #include "raylib.h"
+}
+
+
 int main()
 { 
+    InitWindow(288, 512, "Flappy Bird DCA");
     float delta_time = 0.0f;
 
     StateMachine state_machine = StateMachine();
