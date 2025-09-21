@@ -41,11 +41,14 @@ private:
     char entered_key;
     Bird pajaro;
 
-     // --- Sprites ---
+    // --- Sprites ---
     Texture2D birdSprite;
     Texture2D pipeSprite;
-    Texture2D numberSprites[10];   // sprites de los dígitos 0..9
-
+    Texture2D numberSprites[10]; // sprites de los dígitos 0..9
+    Texture2D birdFrames[3];     // array con los 3 sprites
+    int currentFrame;            // índice del sprite actual
+    float frameTime;             // acumulador de tiempo
+    float frameDelay;            // cuánto tarda en cambiar de sprite
 
     std::deque<PipePair> tuberias;
 
@@ -60,13 +63,13 @@ private:
 
     int puntos = 0;
 
-     // --- Sonidos ---
+    // --- Sonidos ---
     Sound wingSound;
     Sound pointSound;
     Sound hitSound;
 
     // --- Dificultad progresiva ---
-    float dificultadTimer; 
-    float gapFactor;      
+    float dificultadTimer;
+    float gapFactor;
     float pipeSpeed;
 };

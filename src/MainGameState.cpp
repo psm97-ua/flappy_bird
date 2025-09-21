@@ -24,12 +24,19 @@ void MainGameState::init()
     puntos = 0;
 
     dificultadTimer = 0.0f;
-    gapFactor = 4.5f;
+    gapFactor = 3.0f;
     pipeSpeed = PIPE_SPEED;
 
     // --- Cargar sprites ---
     birdSprite = LoadTexture("assets/bluebird-midflap.png");
     pipeSprite = LoadTexture("assets/pipe-green.png");
+
+    birdFrames[0] = LoadTexture("assets/bluebird-upflap.png");
+    birdFrames[1] = LoadTexture("assets/bluebird-midflap.png");
+    birdFrames[2] = LoadTexture("assets/bluebird-downflap.png");
+    currentFrame = 0;
+    frameTime = 0.0f;
+    frameDelay = 0.15f; // cada 0.15s cambia de sprite
     for (int i = 0; i < 10; i++)
     {
         std::string filename = "assets/" + std::to_string(i) + ".png";
@@ -47,7 +54,7 @@ void MainGameState::init()
     // Tamaño de las tuberías según sprite
     PIPE_W = pipeSprite.width;
     PIPE_H = pipeSprite.height;
-    SetMasterVolume(1.0f);
+    SetMasterVolume(0.5f);
 }
 
 void MainGameState::handleInput()
@@ -61,6 +68,14 @@ void MainGameState::handleInput()
 
 void MainGameState::update(float deltaTime)
 {
+    // Actualizar animación del pájaro
+    frameTime += deltaTime;
+    if (frameTime >= frameDelay)
+    {
+        frameTime = 0.0f;
+        currentFrame = (currentFrame + 1) % 3; // ciclo entre 0, 1 y 2
+    }
+
     const float gravedad = 500.0f;
     pajaro.vy += gravedad * deltaTime;
     pajaro.y += pajaro.vy * deltaTime;
@@ -76,11 +91,12 @@ void MainGameState::update(float deltaTime)
     if (dificultadTimer > 5.0f) // cada 5 segundos
     {
         if (gapFactor > 2.5f)
-            gapFactor -= 0.5f;  // huecos más pequeños
+            gapFactor -= 0.35f; // huecos más pequeños
         pipeSpeed += 30.0f;     // tuberías más rápidas
         dificultadTimer = 0.0f; // reiniciar contador
         std::cout << "pipeSpeed: " << pipeSpeed << " gapFactor: " << gapFactor << std::endl;
     }
+    spawnEvery = 1.5f * (80.0f / pipeSpeed);
 
     spawnTimer += deltaTime;
     if (spawnTimer >= spawnEvery)
@@ -94,12 +110,12 @@ void MainGameState::update(float deltaTime)
         float startX = (float)GetScreenWidth();
         float topY = -(float)pipe_y_offset_top;
 
-        int extra = GetRandomValue(PIPE_H / 2, GetScreenHeight() / 2);
-        float botY = (float)(PIPE_H - pipe_y_offset_top + extra);
+        float gap = GetScreenHeight() / gapFactor;
 
         PipePair par;
         par.top = {startX, topY, (float)PIPE_W, (float)PIPE_H};
-        par.bot = {startX, botY, (float)PIPE_W, (float)PIPE_H};
+        par.bot = {startX, topY + PIPE_H + gap, (float)PIPE_W, (float)PIPE_H};
+
         par.scored = false;
 
         tuberias.push_back(par);
@@ -108,8 +124,8 @@ void MainGameState::update(float deltaTime)
     // Movemos todas las tuberías hacia la izquierda
     for (auto &p : tuberias)
     {
-        p.top.x -= PIPE_SPEED * deltaTime;
-        p.bot.x -= PIPE_SPEED * deltaTime;
+        p.top.x -= pipeSpeed * deltaTime;
+        p.bot.x -= pipeSpeed * deltaTime;
     }
 
     // Borramos del frente si salen de la pantalla (usa front() y pop_front())
@@ -155,7 +171,7 @@ void MainGameState::render()
 {
     BeginDrawing();            // 1) Comienza el dibujado
     ClearBackground(RAYWHITE); // 2) Limpia el fotograma anterior
-    DrawTexture(birdSprite, (int)pajaro.x, (int)pajaro.y, WHITE);
+    DrawTexture(birdFrames[currentFrame], (int)pajaro.x, (int)pajaro.y, WHITE);
 
     for (const auto &p : tuberias)
     {
