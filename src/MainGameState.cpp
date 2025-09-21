@@ -34,6 +34,8 @@ void MainGameState::init()
     birdFrames[0] = LoadTexture("assets/bluebird-upflap.png");
     birdFrames[1] = LoadTexture("assets/bluebird-midflap.png");
     birdFrames[2] = LoadTexture("assets/bluebird-downflap.png");
+    background = LoadTexture("assets/background-day.png");
+
     currentFrame = 0;
     frameTime = 0.0f;
     frameDelay = 0.15f; // cada 0.15s cambia de sprite
@@ -87,38 +89,13 @@ void MainGameState::update(float deltaTime)
     pajaroBB.height = pajaro.height;
 
     // --- Actualizar dificultad progresiva ---
-    dificultadTimer += deltaTime;
-    if (dificultadTimer > 5.0f) // cada 5 segundos
-    {
-        if (gapFactor > 2.5f)
-            gapFactor -= 0.35f; // huecos más pequeños
-        pipeSpeed += 30.0f;     // tuberías más rápidas
-        dificultadTimer = 0.0f; // reiniciar contador
-        std::cout << "pipeSpeed: " << pipeSpeed << " gapFactor: " << gapFactor << std::endl;
-    }
-    spawnEvery = 1.5f * (80.0f / pipeSpeed);
+    updateDifficulty(deltaTime);
 
     spawnTimer += deltaTime;
     if (spawnTimer >= spawnEvery)
     {
         spawnTimer = 0.0f;
-
-        int minOff = PIPE_H / 2;
-        int maxOff = GetScreenHeight() / 2;
-        int pipe_y_offset_top = GetRandomValue(minOff, maxOff);
-
-        float startX = (float)GetScreenWidth();
-        float topY = -(float)pipe_y_offset_top;
-
-        float gap = GetScreenHeight() / gapFactor;
-
-        PipePair par;
-        par.top = {startX, topY, (float)PIPE_W, (float)PIPE_H};
-        par.bot = {startX, topY + PIPE_H + gap, (float)PIPE_W, (float)PIPE_H};
-
-        par.scored = false;
-
-        tuberias.push_back(par);
+        spawnPipe();
     }
 
     // Movemos todas las tuberías hacia la izquierda
@@ -170,7 +147,7 @@ void MainGameState::update(float deltaTime)
 void MainGameState::render()
 {
     BeginDrawing();            // 1) Comienza el dibujado
-    ClearBackground(RAYWHITE); // 2) Limpia el fotograma anterior
+    DrawTexture(background, 0, 0, WHITE);
     DrawTexture(birdFrames[currentFrame], (int)pajaro.x, (int)pajaro.y, WHITE);
 
     for (const auto &p : tuberias)
@@ -202,4 +179,47 @@ void MainGameState::render()
     }
 
     EndDrawing();
+}
+
+void MainGameState::updateDifficulty(float deltaTime)
+{
+    // acumulamos tiempo
+    dificultadTimer += deltaTime;
+
+    // cada 5s endurecemos un poco el juego
+    if (dificultadTimer > 5.0f)
+    {
+        if (gapFactor > 2.5f)
+            gapFactor -= 0.35f; // hueco más pequeño (límite 2.5)
+        pipeSpeed += 20.0f;     // tuberías más rápidas
+        dificultadTimer = 0.0f;
+
+        std::cout << "pipeSpeed: " << pipeSpeed << " gapFactor: " << gapFactor << std::endl;
+    }
+
+    // mantener una separación horizontal similar pese a la velocidad
+    // 80.0f = velocidad base inicial; 1.5f = spawn base
+    spawnEvery = 1.5f * (80.0f / pipeSpeed);
+}
+
+// --- Refactor: creación de un nuevo par de tuberías ---
+void MainGameState::spawnPipe()
+{
+    // offset vertical aleatorio de la tubería superior
+    int minOff = PIPE_H / 2;
+    int maxOff = GetScreenHeight() / 2;
+    int pipe_y_offset_top = GetRandomValue(minOff, maxOff);
+
+    float startX = (float)GetScreenWidth();
+    float topY = -(float)pipe_y_offset_top;
+
+    // hueco controlado por el factor de dificultad (más pequeño con el tiempo)
+    float gap = GetScreenHeight() / gapFactor;
+
+    PipePair par;
+    par.top = {startX, topY, (float)PIPE_W, (float)PIPE_H};
+    par.bot = {startX, topY + PIPE_H + gap, (float)PIPE_W, (float)PIPE_H};
+    par.scored = false;
+
+    tuberias.push_back(par);
 }

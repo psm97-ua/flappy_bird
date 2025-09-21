@@ -40,6 +40,8 @@ public:
 private:
     char entered_key;
     Bird pajaro;
+    Texture2D background;
+
 
     // --- Sprites ---
     Texture2D birdSprite;
@@ -72,4 +74,8 @@ private:
     float dificultadTimer;
     float gapFactor;
     float pipeSpeed;
+
+    // --- (refactor pequeño) ---
+    void updateDifficulty(float deltaTime);
+    void spawnPipe();
 };

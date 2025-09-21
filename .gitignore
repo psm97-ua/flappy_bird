@@ -41,4 +41,5 @@
 *.dwo
 
 game
-*.png
+screenshot*.png
+!assets/*.png
