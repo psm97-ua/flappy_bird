@@ -2,6 +2,7 @@
 #include "GameOverState.hpp"
 #include "StateMachine.hpp"
 #include <iostream>
+#include <string>
 
 extern "C"
 {
@@ -29,6 +30,11 @@ void MainGameState::init()
     // --- Cargar sprites ---
     birdSprite = LoadTexture("assets/bluebird-midflap.png");
     pipeSprite = LoadTexture("assets/pipe-green.png");
+    for (int i = 0; i < 10; i++)
+    {
+        std::string filename = "assets/" + std::to_string(i) + ".png";
+        numberSprites[i] = LoadTexture(filename.c_str());
+    }
 
     wingSound = LoadSound("assets/audio/sfx_wing.ogg");
     pointSound = LoadSound("assets/audio/sfx_point.ogg");
@@ -74,7 +80,6 @@ void MainGameState::update(float deltaTime)
         pipeSpeed += 30.0f;     // tuberías más rápidas
         dificultadTimer = 0.0f; // reiniciar contador
         std::cout << "pipeSpeed: " << pipeSpeed << " gapFactor: " << gapFactor << std::endl;
-
     }
 
     spawnTimer += deltaTime;
@@ -168,9 +173,17 @@ void MainGameState::render()
                       1.0f, // escala
                       WHITE);
     }
-
+    // Puntuación con sprites (arriba a la izquierda)
     std::string puntosStr = std::to_string(puntos);
-    DrawText(puntosStr.c_str(), 10, 10, 30, BLACK);
+    int x = 10; // margen izquierdo
+    int y = 10; // margen superior
+
+    for (char c : puntosStr)
+    {
+        int digit = c - '0'; // convierte '0'..'9' en 0..9
+        DrawTexture(numberSprites[digit], x, y, WHITE);
+        x += numberSprites[digit].width + 2; // separa cada dígito
+    }
 
     EndDrawing();
 }

@@ -44,6 +44,8 @@ private:
      // --- Sprites ---
     Texture2D birdSprite;
     Texture2D pipeSprite;
+    Texture2D numberSprites[10];   // sprites de los dígitos 0..9
+
 
     std::deque<PipePair> tuberias;
 
